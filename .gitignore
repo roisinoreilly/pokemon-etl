@@ -1,2 +1,3 @@
 pokemon.json
 node_modules
+*.env*
