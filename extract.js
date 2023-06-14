@@ -1,6 +1,7 @@
 const axios = require("axios");
 const fs = require("fs");
-const pokemon = require("./pokemon.json");
+const pokemon = require("./data/pokemon.json");
+const mappedPokemon = require("./data/mappedPokemon.json");
 
 const api = axios.create({
   baseURL: "https://pokeapi.co/api/v2",
@@ -30,8 +31,15 @@ const removeMiscData = (pokemonData) => {
       const name = move.move.name;
       return { id, name };
     });
-    const { name, id, types, weight, height, moves, sprites } = pokemon;
-    return { name, id, types, weight, height, moves, sprites };
+    pokemon.types = pokemon.types.map((type) => {
+        const url = type.type.url.split("/");
+        const id = url[url.length - 2];
+        const name = type.type.name;
+        return { id, name };
+    }
+    )
+    const { name, id, types, weight, height, moves } = pokemon;
+    return { name, id, types, weight, height, moves };
   });
   return mappedPokemon;
 };
@@ -74,4 +82,19 @@ const formatTypesAndWrite = async () => {
   fs.writeFileSync("types.json", JSON.stringify(typesWithId));
 };
 
-formatTypesAndWrite();
+const formatSprites = async () => {
+  let counter = 1;
+  
+  const sprites = mappedPokemon.reduce((allSprites, pokemon) => {
+
+    const frontDefault = pokemon.sprites.other["official-artwork"]["front_default"];
+    const frontShiny = pokemon.sprites.other["official-artwork"]["front_shiny"];
+    allSprites[pokemon.id] = [[counter++, frontDefault], [counter++, frontShiny]]
+    return allSprites;
+  }, {})
+
+  fs.writeFileSync("data/sprites.json", JSON.stringify(sprites));
+}
+// formatSprites();
+// formatTypesAndWrite();
+writePokemonToFile(pokemon);

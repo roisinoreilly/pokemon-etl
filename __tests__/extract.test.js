@@ -10,5 +10,11 @@ describe("Moves and Type ids", () => {
       });
     });
   });
-  test.todo("All pokemon moves names and ids should line up with moves object");
-});
+  test("All pokemon types names and ids should line up with moves object", () => {
+    pokemon.forEach((pokemon) => {
+      pokemon.types.forEach((type) => {
+        expect(types[type.id]).toEqual(type.name);
+      })
+  });
+})
+})
