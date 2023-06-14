@@ -8,6 +8,9 @@ exports.seed = async (pokemon, moves, types, sprites) => {
   await insertMoves(moves);
   await insertTypes(types);
   await insertSprites(sprites);
+  await insertPokemonMoves(pokemon);
+  await insertPokemonTypes(pokemon);
+  await insertPokemonSprites(sprites)
 
   console.log("Seeding complete!");
 };
@@ -58,14 +61,10 @@ CREATE TABLE "pokemon_sprites"(
     "pokemon_id" INTEGER NOT NULL,
     "sprite_id" INTEGER NOT NULL
 );
-ALTER TABLE
-    "pokemon_sprites" ADD PRIMARY KEY("pokemon_id");
 CREATE TABLE "pokemon_moves"(
     "pokemon_id" INTEGER NOT NULL,
     "move_id" INTEGER NOT NULL
 );
-ALTER TABLE
-    "pokemon_moves" ADD PRIMARY KEY("pokemon_id");
 CREATE TABLE "types"(
     "id" INTEGER NOT NULL,
     "name" VARCHAR(255) NOT NULL
@@ -139,6 +138,36 @@ const insertSprites = async (sprites) => {
 
   return db.query(query);
 };
-const insertPokemonSprites = async () => {};
-const insertPokemonMoves = async () => {};
-const insertPokemonTypes = async () => {};
+const insertPokemonMoves = async (pokemon) => {
+    const pokemonPairs = []
+    pokemon.forEach((pokemon) => {
+        pokemon.moves.forEach((move) => {
+            pokemonPairs.push([pokemon.id, move.id])
+        })
+    })
+    const query = format(`
+    INSERT INTO pokemon_moves (pokemon_id, move_id) VALUES %L RETURNING *`, pokemonPairs)
+    return db.query(query)
+
+};
+const insertPokemonTypes = async (pokemon) => {
+    const typePairs = []
+    pokemon.forEach((pokemon) => {
+        pokemon.types.forEach((type) => {
+            typePairs.push([pokemon.id, type.id])
+        })
+    })
+    const query = format(`
+    INSERT INTO pokemon_types (pokemon_id, type_id) VALUES %L RETURNING *`, typePairs)
+    return db.query(query)
+
+};
+const insertPokemonSprites = async (sprites) => {
+    const spritePairs = []
+    for (const key in sprites) {
+        spritePairs.push([key, sprites[key][0][0]], [key, sprites[key][1][0]])
+    }
+    const query = format(`
+    INSERT INTO pokemon_sprites (pokemon_id, sprite_id) VALUES %L RETURNING *`, spritePairs)
+    return db.query(query)
+};
