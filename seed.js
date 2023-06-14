@@ -1,10 +1,15 @@
 const db = require("./index");
 const format = require("pg-format");
 
-exports.seed = async (pokemon) => {
+exports.seed = async (pokemon, moves, types, sprites) => {
   await dropTables();
   await createTables();
   await insertPokemon(pokemon);
+  await insertMoves(moves);
+  await insertTypes(types);
+  await insertSprites(sprites);
+
+  console.log("Seeding complete!");
 };
 
 const dropTables = async () => {
@@ -95,9 +100,45 @@ const insertPokemon = async (pokemon) => {
 
   return db.query(query);
 };
-const insertMoves = async () => {};
-const insertTypes = async () => {};
-const insertSprites = async () => {};
+const insertMoves = async (moves) => {
+  const formatted = [];
+  for (const key in moves) {
+    formatted.push([key, moves[key]]);
+  }
+
+  const query = format(
+    `INSERT INTO moves (id, name) VALUES %L RETURNING *`,
+    formatted
+  );
+
+  return db.query(query);
+};
+const insertTypes = async (types) => {
+  const formatted = [];
+  for (const key in types) {
+    formatted.push([key, types[key]]);
+  }
+
+  const query = format(
+    `INSERT INTO types (id, name) VALUES %L RETURNING *`,
+    formatted
+  );
+
+  return db.query(query);
+};
+const insertSprites = async (sprites) => {
+  const formatted = [];
+  for (const key in sprites) {
+    formatted.push(sprites[key][0], sprites[key][1]);
+  }
+
+  const query = format(
+    `INSERT INTO sprites (id, url) VALUES %L RETURNING *`,
+    formatted
+  );
+
+  return db.query(query);
+};
 const insertPokemonSprites = async () => {};
 const insertPokemonMoves = async () => {};
 const insertPokemonTypes = async () => {};
