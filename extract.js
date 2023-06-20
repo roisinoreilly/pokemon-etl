@@ -2,6 +2,7 @@ const axios = require("axios");
 const fs = require("fs");
 const pokemon = require("./data/pokemon.json");
 const mappedPokemon = require("./data/mappedPokemon.json");
+const allMoves = require("./data/moves.json");
 
 const api = axios.create({
   baseURL: "https://pokeapi.co/api/v2",
@@ -28,8 +29,8 @@ const removeMiscData = (pokemonData) => {
     pokemon.moves = pokemon.moves.map((move) => {
       const url = move.move.url.split("/");
       const id = url[url.length - 2];
-      const name = move.move.name;
-      return { id, name };
+      // const name = move.move.name;
+      return { id };
     });
     pokemon.types = pokemon.types.map((type) => {
       const url = type.type.url.split("/");
@@ -83,7 +84,7 @@ const formatTypes = async () => {
 const formatSprites = async () => {
   let counter = 1;
 
-  const sprites = mappedPokemon.reduce((allSprites, pokemon) => {
+  const sprites = pokemon.reduce((allSprites, pokemon) => {
     const frontDefault =
       pokemon.sprites.other["official-artwork"]["front_default"];
     const frontShiny = pokemon.sprites.other["official-artwork"]["front_shiny"];
@@ -96,14 +97,43 @@ const formatSprites = async () => {
   return sprites;
 };
 
-formatTypes().then((typesWithId) => {
-  fs.writeFileSync("types.json", JSON.stringify(typesWithId));
-});
-formatSprites().then((sprites) => {
-  fs.writeFileSync("sprites.json", JSON.stringify(sprites));
-});
-formatMoves().then((movesWithId) => {
-  fs.writeFileSync("moves.json", JSON.stringify(movesWithId));
-});
+
+
+const getAllUsedMoveIds = (pokemonArray) => {
+  const moves = new Set()
+  pokemonArray.forEach(pokemon => {
+    pokemon.moves.forEach(move => {
+      moves.add(move.id)
+    })
+  })
+  return [...moves].sort()
+}
+
+const formatMovesToInsert = (movesArray) => {
+  return movesArray.reduce((usedMoves, move) => {
+    usedMoves[move] = allMoves[move]
+    return usedMoves
+  }, {})
+
+}
+
+const usedMovesArray = getAllUsedMoveIds(mappedPokemon)
+
+const movesToInsert = formatMovesToInsert(usedMovesArray)
+
+fs.writeFileSync("usedMoves.json", JSON.stringify(movesToInsert))
+
+
+// formatTypes().then((typesWithId) => {
+//   fs.writeFileSync("types.json", JSON.stringify(typesWithId));
+// });
+// formatSprites().then((sprites) => {
+//   fs.writeFileSync("sprites.json", JSON.stringify(sprites));
+// });
+// formatMoves().then((movesWithId) => {
+//   fs.writeFileSync("moves.json", JSON.stringify(movesWithId));
+// });
 
 writePokemonToFile(pokemon);
+
+module.exports = {formatMoves, formatSprites, formatTypes, getAllUsedMoveIds, formatMovesToInsert}
